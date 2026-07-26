@@ -1,6 +1,6 @@
 {
   "$schema": "https://json.schemastore.org/tsconfig",
-  "display": "Aktan base config",
+  "display": "AquaPilot base config",
   "compilerOptions": {
     "target": "ES2022",
     "module": "NodeNext",

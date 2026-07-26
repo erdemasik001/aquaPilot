@@ -39,11 +39,11 @@ pcs := add(pcs, argsLength)
 
 ### Bundan çıkan sert sınırlar
 
-| Sınır | Değer | Kaynak |
-|---|---|---|
-| Instruction başına argüman | **≤ 255 byte** | `argsLength` tek byte; `toUint8()` taşarsa revert |
-| Program uzunluğu (jump adreslenebilir) | **≤ 65.535 byte** | jump hedefleri `uint16`; `VM.sol` runLoop yorumu |
-| PC taşması | `pcs > length` → `RunLoopExceedProgramLength` | `VM.sol:143` |
+| Sınır                                  | Değer                                         | Kaynak                                            |
+| -------------------------------------- | --------------------------------------------- | ------------------------------------------------- |
+| Instruction başına argüman             | **≤ 255 byte**                                | `argsLength` tek byte; `toUint8()` taşarsa revert |
+| Program uzunluğu (jump adreslenebilir) | **≤ 65.535 byte**                             | jump hedefleri `uint16`; `VM.sol` runLoop yorumu  |
+| PC taşması                             | `pcs > length` → `RunLoopExceedProgramLength` | `VM.sol:143`                                      |
 
 > `Extruction` (`0x04`) keyfi `uint256 nextPC` desteklediği için 64KB üstü programlarda tek kaçış yolu odur.
 
@@ -53,11 +53,11 @@ pcs := add(pcs, argsLength)
 
 Üç ayrı opcode seti var. Hangi router'ı deploy ettiğiniz, hangi instruction'ların **var olduğunu** belirliyor. Dispatch edilmeyen opcode `UnknownOpcode(opcode)` ile revert eder.
 
-| Opcode seti | Router | Instruction aileleri |
-|---|---|---|
-| `Opcodes` | **`SwapVMRouter`** | **Hepsi** — Controls, Balances, Invalidators, LimitSwap, XYC, XYCConcentrate, Pegged, Decay, MinRate, DutchAuction, BaseFeeAdjuster, TWAP, Fee, FeeExperimental, SeriesEpoch, Whitelist, PiecewiseLinearScale, Extruction |
-| `LimitOpcodes` | `LimitSwapVMRouter` | Controls, Balances, Invalidators, LimitSwap, BaseFeeAdjuster, Fee, SeriesEpoch, Whitelist, PiecewiseLinearScale, Extruction — **DutchAuction / MinRate / TWAP / XYC / Decay yok** |
-| `AquaOpcodes` | `AquaSwapVMRouter` | Controls, XYC, XYCConcentrate, Decay, Pegged, Fee, Extruction — **LimitSwap / StaticBalances / Invalidators / DutchAuction / TWAP yok** |
+| Opcode seti    | Router              | Instruction aileleri                                                                                                                                                                                                      |
+| -------------- | ------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `Opcodes`      | **`SwapVMRouter`**  | **Hepsi** — Controls, Balances, Invalidators, LimitSwap, XYC, XYCConcentrate, Pegged, Decay, MinRate, DutchAuction, BaseFeeAdjuster, TWAP, Fee, FeeExperimental, SeriesEpoch, Whitelist, PiecewiseLinearScale, Extruction |
+| `LimitOpcodes` | `LimitSwapVMRouter` | Controls, Balances, Invalidators, LimitSwap, BaseFeeAdjuster, Fee, SeriesEpoch, Whitelist, PiecewiseLinearScale, Extruction — **DutchAuction / MinRate / TWAP / XYC / Decay yok**                                         |
+| `AquaOpcodes`  | `AquaSwapVMRouter`  | Controls, XYC, XYCConcentrate, Decay, Pegged, Fee, Extruction — **LimitSwap / StaticBalances / Invalidators / DutchAuction / TWAP yok**                                                                                   |
 
 ### ⚠️ Aqua bir opcode seti değil, bir trait bayrağıdır
 
@@ -67,7 +67,7 @@ Bu, projenin en kritik mimari bulgusu. `src/libs/MakerTraits.sol`:
 uint256 constant internal USE_AQUA_INSTEAD_OF_SIGNATURE_BIT_FLAG = 1 << 254;
 ```
 
-`useAquaInsteadOfSignature` order'ın **traits** alanındaki bir bittir — opcode setinden bağımsızdır. `PROGRAMS.md §3` bunu doğruluyor: *"`useAquaInsteadOfSignature` settlement/auth akışını değiştirir, VM strateji kompozisyonunu değil."*
+`useAquaInsteadOfSignature` order'ın **traits** alanındaki bir bittir — opcode setinden bağımsızdır. `PROGRAMS.md §3` bunu doğruluyor: _"`useAquaInsteadOfSignature` settlement/auth akışını değiştirir, VM strateji kompozisyonunu değil."_
 
 Ayrıca her üç router da constructor'ında `aqua` adresi alır:
 
@@ -93,18 +93,18 @@ Böylece tam opcode setine (LimitSwap, StaticBalances, Invalidators, DutchAuctio
 
 Enum sırası = opcode numarası. Aileler bank'lara bölünmüş; `0xf0-0xff` rezerve (2-byte opcode escape prefix ihtimali için) ve **asla tahsis edilmiyor**.
 
-| Bank | Aile | Tahsisli opcode'lar |
-|---|---|---|
-| `0x00-0x0f` | Core control flow | `00` Stop · `01` Revert · `02` Salt · `03` Jump · `04` Extruction |
-| `0x10-0x1f` | Debug (yalnız `*Debug` setlerinde) | `10` PrintSwapRegisters · `11` PrintSwapQuery · `12` PrintContext · `13` PrintFreeMemoryPointer · `14` PrintGasLeft · `1a` PatchSwapRegisters |
-| `0x20-0x3f` | Koşullar & erişim | `20` Deadline · `23` OnlyTakerTokenBalanceNonZero · `24` OnlyTakerTokenBalanceGte · `25` OnlyTakerTokenSupplyShareGte · `26` OnlyTxOriginTokenBalanceNonZero · `2b` PrivateOrder · `2c` WhitelistCoequal · `2d` WhitelistSequential · `30` JumpIfDirection · `31` JumpIfTokenIn · `32` JumpIfTokenOut |
-| `0x40-0x4f` | Invalidator & epoch | `40` InvalidateBit · `41` InvalidateTokenIn · `42` InvalidateTokenOut · `48` ValidateSeriesEpoch |
-| `0x50-0x6f` | Swap eğrileri | `50` XYCSwap · `51` XYCConcentrateSwap · `53` LimitSwap · `54` LimitSwapFullAmount · `58` PeggedSwap |
-| `0x70-0x8f` | Ücretler | `70` FlatFeeAmountIn · `71` ProtocolFeeAmountIn · `72` AquaProtocolFeeAmountIn · `73` ProgressiveFeeIn · `74` DynamicProtocolFeeAmountIn · `75` AquaDynamicProtocolFeeAmountIn · `80` FlatFeeAmountOut · `81` ProtocolFeeAmountOut · `82` AquaProtocolFeeAmountOut · `83` ProgressiveFeeOut |
-| `0x90-0xaf` | Bakiye ayarı | `90` StaticBalances · `91` DynamicBalances · `94` DutchAuctionBalanceIn · `95` DutchAuctionBalanceOut · `98` PiecewiseLinearScaleBalanceIn · `99` PiecewiseLinearScaleBalanceOut · `9c` Decay · `9d` TWAPSwap |
-| `0xb0-0xcf` | Oran ayarı | `b0` RequireMinRate · `b1` AdjustMinRate · `b4` BaseFeeAdjuster |
-| `0xd0-0xef` | Tahsissiz | — |
-| `0xf0-0xff` | **Rezerve** | asla kullanma |
+| Bank        | Aile                               | Tahsisli opcode'lar                                                                                                                                                                                                                                                                                   |
+| ----------- | ---------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `0x00-0x0f` | Core control flow                  | `00` Stop · `01` Revert · `02` Salt · `03` Jump · `04` Extruction                                                                                                                                                                                                                                     |
+| `0x10-0x1f` | Debug (yalnız `*Debug` setlerinde) | `10` PrintSwapRegisters · `11` PrintSwapQuery · `12` PrintContext · `13` PrintFreeMemoryPointer · `14` PrintGasLeft · `1a` PatchSwapRegisters                                                                                                                                                         |
+| `0x20-0x3f` | Koşullar & erişim                  | `20` Deadline · `23` OnlyTakerTokenBalanceNonZero · `24` OnlyTakerTokenBalanceGte · `25` OnlyTakerTokenSupplyShareGte · `26` OnlyTxOriginTokenBalanceNonZero · `2b` PrivateOrder · `2c` WhitelistCoequal · `2d` WhitelistSequential · `30` JumpIfDirection · `31` JumpIfTokenIn · `32` JumpIfTokenOut |
+| `0x40-0x4f` | Invalidator & epoch                | `40` InvalidateBit · `41` InvalidateTokenIn · `42` InvalidateTokenOut · `48` ValidateSeriesEpoch                                                                                                                                                                                                      |
+| `0x50-0x6f` | Swap eğrileri                      | `50` XYCSwap · `51` XYCConcentrateSwap · `53` LimitSwap · `54` LimitSwapFullAmount · `58` PeggedSwap                                                                                                                                                                                                  |
+| `0x70-0x8f` | Ücretler                           | `70` FlatFeeAmountIn · `71` ProtocolFeeAmountIn · `72` AquaProtocolFeeAmountIn · `73` ProgressiveFeeIn · `74` DynamicProtocolFeeAmountIn · `75` AquaDynamicProtocolFeeAmountIn · `80` FlatFeeAmountOut · `81` ProtocolFeeAmountOut · `82` AquaProtocolFeeAmountOut · `83` ProgressiveFeeOut           |
+| `0x90-0xaf` | Bakiye ayarı                       | `90` StaticBalances · `91` DynamicBalances · `94` DutchAuctionBalanceIn · `95` DutchAuctionBalanceOut · `98` PiecewiseLinearScaleBalanceIn · `99` PiecewiseLinearScaleBalanceOut · `9c` Decay · `9d` TWAPSwap                                                                                         |
+| `0xb0-0xcf` | Oran ayarı                         | `b0` RequireMinRate · `b1` AdjustMinRate · `b4` BaseFeeAdjuster                                                                                                                                                                                                                                       |
+| `0xd0-0xef` | Tahsissiz                          | —                                                                                                                                                                                                                                                                                                     |
+| `0xf0-0xff` | **Rezerve**                        | asla kullanma                                                                                                                                                                                                                                                                                         |
 
 ---
 
@@ -114,53 +114,56 @@ Tümü `abi.encodePacked` — **padding yok**, alanlar bitişik. Aşağıdakiler
 
 ### Controls (`src/instructions/Controls.sol`)
 
-| Opcode | Args | Uzunluk | Not |
-|---|---|---|---|
-| `00` Stop | — | 0 | `nextPC = type(uint256).max` |
-| `01` Revert | `bytes reason` | değişken | `InstructionRevert(bytes)` ile revert |
-| `02` Salt | `uint64` veya keyfi `bytes` | değişken | **No-op.** Yalnızca orderHash'i benzersizleştirir |
-| `03` Jump | `uint16 nextPC` | 2 | Koşulsuz |
-| `20` Deadline | `uint40 deadline` | **5** | `block.timestamp <= deadline` |
-| `23` OnlyTakerTokenBalanceNonZero | `address token` | 20 | ERC-20 **ve** NFT |
-| `24` OnlyTakerTokenBalanceGte | `address token` + `uint256 minAmount` | 52 | |
-| `25` OnlyTakerTokenSupplyShareGte | `address token` + `uint64 minShareE18` | 28 | |
-| `26` OnlyTxOriginTokenBalanceNonZero | `address token` | 20 | ⚠️ `tx.origin` doğrulaması zayıf sayılır (kaynak yorumu) |
-| `30` JumpIfDirection | `bool expected` + `uint16 nextPC` | 3 | |
-| `31` JumpIfTokenIn | `address token` + `uint16 nextPC` | **22** | |
-| `32` JumpIfTokenOut | `address token` + `uint16 nextPC` | **22** | |
+| Opcode                               | Args                                   | Uzunluk  | Not                                                      |
+| ------------------------------------ | -------------------------------------- | -------- | -------------------------------------------------------- |
+| `00` Stop                            | —                                      | 0        | `nextPC = type(uint256).max`                             |
+| `01` Revert                          | `bytes reason`                         | değişken | `InstructionRevert(bytes)` ile revert                    |
+| `02` Salt                            | `uint64` veya keyfi `bytes`            | değişken | **No-op.** Yalnızca orderHash'i benzersizleştirir        |
+| `03` Jump                            | `uint16 nextPC`                        | 2        | Koşulsuz                                                 |
+| `20` Deadline                        | `uint40 deadline`                      | **5**    | `block.timestamp <= deadline`                            |
+| `23` OnlyTakerTokenBalanceNonZero    | `address token`                        | 20       | ERC-20 **ve** NFT                                        |
+| `24` OnlyTakerTokenBalanceGte        | `address token` + `uint256 minAmount`  | 52       |                                                          |
+| `25` OnlyTakerTokenSupplyShareGte    | `address token` + `uint64 minShareE18` | 28       |                                                          |
+| `26` OnlyTxOriginTokenBalanceNonZero | `address token`                        | 20       | ⚠️ `tx.origin` doğrulaması zayıf sayılır (kaynak yorumu) |
+| `30` JumpIfDirection                 | `bool expected` + `uint16 nextPC`      | 3        |                                                          |
+| `31` JumpIfTokenIn                   | `address token` + `uint16 nextPC`      | **22**   |                                                          |
+| `32` JumpIfTokenOut                  | `address token` + `uint16 nextPC`      | **22**   |                                                          |
 
 ### Balances (`src/instructions/Balances.sol`)
 
-| Opcode | Args | Uzunluk |
-|---|---|---|
-| `90` StaticBalances | `uint256 balanceA` + `uint256 balanceB` | **64** |
-| `91` DynamicBalances | `uint256 balanceA` + `uint256 balanceB` | **64** |
+| Opcode               | Args                                    | Uzunluk |
+| -------------------- | --------------------------------------- | ------- |
+| `90` StaticBalances  | `uint256 balanceA` + `uint256 balanceB` | **64**  |
+| `91` DynamicBalances | `uint256 balanceA` + `uint256 balanceB` | **64**  |
 
 > **Tuzak:** argümanlar `(in, out)` değil **sıralı token düzeninde `(A, B)`** verilir. Instruction, `tokenIn < tokenOut` karşılaştırmasına göre kendisi eşler:
+>
 > ```solidity
 > if (ctx.query.tokenIn < ctx.query.tokenOut) (balanceIn, balanceOut) = parse(args);
 > else                                        (balanceOut, balanceIn) = parse(args);
 > ```
+>
 > TS port'unda bunu ters kurmak, sessizce ters fiyatlı bir program üretir. Golden fixture testinin yakalaması gereken ilk hata budur.
 
 ### LimitSwap (`src/instructions/LimitSwap.sol`)
 
-| Opcode | Args | Uzunluk |
-|---|---|---|
-| `53` LimitSwap | `bool makerDirectionLt` (= `tokenIn < tokenOut`) | **1** |
-| `54` LimitSwapFullAmount | `bool makerDirectionLt` | **1** |
+| Opcode                   | Args                                             | Uzunluk |
+| ------------------------ | ------------------------------------------------ | ------- |
+| `53` LimitSwap           | `bool makerDirectionLt` (= `tokenIn < tokenOut`) | **1**   |
+| `54` LimitSwapFullAmount | `bool makerDirectionLt`                          | **1**   |
 
 Fiyatlama sabit oranlıdır, bakiye oranından türetilir:
+
 - exactIn → `amountOut = amountIn * balanceOut / balanceIn` (floor, kasıtlı)
 - exactOut → `amountIn = ceilDiv(amountOut * balanceIn, balanceOut)` (ceil, kasıtlı)
 
 ### Invalidators (`src/instructions/Invalidators.sol`)
 
-| Opcode | Args | Uzunluk | Kullanım |
-|---|---|---|---|
-| `40` InvalidateBit | `uint32 bitIndex` | **4** | Tek seferlik order (replay koruması) |
-| `41` InvalidateTokenIn | — | 0 | Kısmi doldurma, girdi tarafı sayacı |
-| `42` InvalidateTokenOut | — | 0 | Kısmi doldurma, çıktı tarafı sayacı |
+| Opcode                  | Args              | Uzunluk | Kullanım                             |
+| ----------------------- | ----------------- | ------- | ------------------------------------ |
+| `40` InvalidateBit      | `uint32 bitIndex` | **4**   | Tek seferlik order (replay koruması) |
+| `41` InvalidateTokenIn  | —                 | 0       | Kısmi doldurma, girdi tarafı sayacı  |
+| `42` InvalidateTokenOut | —                 | 0       | Kısmi doldurma, çıktı tarafı sayacı  |
 
 _[DOĞRULANMADI]_ — Fee, XYC, Decay, DutchAuction, TWAP, BaseFeeAdjuster, MinRate, PiecewiseLinearScale, Whitelist, SeriesEpoch, Extruction argüman layout'ları henüz çıkarılmadı. Strateji tasarımı kesinleştiğinde yalnızca kullanılacak olanlar eklenecek.
 
@@ -170,18 +173,18 @@ _[DOĞRULANMADI]_ — Fee, XYC, Decay, DutchAuction, TWAP, BaseFeeAdjuster, MinR
 
 Hepsi kaynaktaki `require`/`revert` ifadelerinden türetildi. **Bunlar validator'ın Gün 4'te uygulayacağı kurallardır.**
 
-| # | Kural | İhlal edilirse | Kaynak |
-|---|---|---|---|
-| R1 | `StaticBalances`/`DynamicBalances` **program başında ve tam bir kez**; çalıştığında `balanceIn == balanceOut == 0` olmalı | `SetBalancesExpectZeroBalances` | `Balances.sol:38,57` |
-| R2 | `LimitSwap` **bakiyelerden sonra** gelmeli | `LimitSwapRequiresBothBalancesNonZero` | `LimitSwap.sol:41` |
-| R3 | Bir yürütme yolunda **tek swap** instruction'ı | `LimitSwapRecomputeDetected` | `LimitSwap.sol:48,51` |
-| R4 | `LimitSwap` argümanındaki yön, gerçek swap yönüyle eşleşmeli | `LimitSwapDirectionMismatch` | `LimitSwap.sol:45` |
-| R5 | `MakerTraits.build` çağrısında **`tokenA < tokenB` sıralı** olmalı | `MakerTraitsTokensNotSorted` | `MakerTraits.sol:103` |
-| R6 | Jump hedefi bir instruction sınırına düşmeli ve `< 65.536` olmalı | `RunLoopExceedProgramLength` / sessiz bozulma | `VM.sol:143` |
-| R7 | Instruction argümanı **≤ 255 byte** | `toUint8()` taşması | `ProgramBuilder.sol:22` |
-| R8 | **Geriye jump yasak** → `DynamicBalances`, `InvalidateBit`, `InvalidateTokenIn/Out` | quote/swap tutarsızlığı — sessiz, en tehlikelisi | `Balances.sol:51-54`, `Invalidators.sol:80-83,97-100,118-121` |
-| R9 | `OraclePriceAdjuster` swap'tan **sonra** gelmeli | `OraclePriceAdjusterShouldBeAppliedAfterSwap` | `OraclePriceAdjuster.sol:83` *(şu an dispatch edilmiyor)* |
-| R10 | Ücret instruction'ı yerleşimi ekonomik sonucu değiştirir | sessiz — yalnızca invariant testiyle yakalanır | `PROGRAMS.md:34,116` |
+| #   | Kural                                                                                                                     | İhlal edilirse                                   | Kaynak                                                        |
+| --- | ------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------ | ------------------------------------------------------------- |
+| R1  | `StaticBalances`/`DynamicBalances` **program başında ve tam bir kez**; çalıştığında `balanceIn == balanceOut == 0` olmalı | `SetBalancesExpectZeroBalances`                  | `Balances.sol:38,57`                                          |
+| R2  | `LimitSwap` **bakiyelerden sonra** gelmeli                                                                                | `LimitSwapRequiresBothBalancesNonZero`           | `LimitSwap.sol:41`                                            |
+| R3  | Bir yürütme yolunda **tek swap** instruction'ı                                                                            | `LimitSwapRecomputeDetected`                     | `LimitSwap.sol:48,51`                                         |
+| R4  | `LimitSwap` argümanındaki yön, gerçek swap yönüyle eşleşmeli                                                              | `LimitSwapDirectionMismatch`                     | `LimitSwap.sol:45`                                            |
+| R5  | `MakerTraits.build` çağrısında **`tokenA < tokenB` sıralı** olmalı                                                        | `MakerTraitsTokensNotSorted`                     | `MakerTraits.sol:103`                                         |
+| R6  | Jump hedefi bir instruction sınırına düşmeli ve `< 65.536` olmalı                                                         | `RunLoopExceedProgramLength` / sessiz bozulma    | `VM.sol:143`                                                  |
+| R7  | Instruction argümanı **≤ 255 byte**                                                                                       | `toUint8()` taşması                              | `ProgramBuilder.sol:22`                                       |
+| R8  | **Geriye jump yasak** → `DynamicBalances`, `InvalidateBit`, `InvalidateTokenIn/Out`                                       | quote/swap tutarsızlığı — sessiz, en tehlikelisi | `Balances.sol:51-54`, `Invalidators.sol:80-83,97-100,118-121` |
+| R9  | `OraclePriceAdjuster` swap'tan **sonra** gelmeli                                                                          | `OraclePriceAdjusterShouldBeAppliedAfterSwap`    | `OraclePriceAdjuster.sol:83` _(şu an dispatch edilmiyor)_     |
+| R10 | Ücret instruction'ı yerleşimi ekonomik sonucu değiştirir                                                                  | sessiz — yalnızca invariant testiyle yakalanır   | `PROGRAMS.md:34,116`                                          |
 
 ### Sarmalayan (wrapping) instruction'lar — VM'in en ince semantiği
 
@@ -209,15 +212,15 @@ Order {
 
 **traits bit haritası:**
 
-| Bit | Anlam |
-|---|---|
-| `255` | `shouldUnwrapWeth` |
-| `254` | **`useAquaInsteadOfSignature`** ← Aqua modu |
-| `253` | `allowZeroAmountIn` |
-| `252-249` | pre/post transfer-in/out hook var mı |
-| `248-245` | ilgili hook'un ayrı target adresi var mı |
+| Bit       | Anlam                                          |
+| --------- | ---------------------------------------------- |
+| `255`     | `shouldUnwrapWeth`                             |
+| `254`     | **`useAquaInsteadOfSignature`** ← Aqua modu    |
+| `253`     | `allowZeroAmountIn`                            |
+| `252-249` | pre/post transfer-in/out hook var mı           |
+| `248-245` | ilgili hook'un ayrı target adresi var mı       |
 | `224-160` | `orderDataIndexes` — 4 × `uint16` slice ofseti |
-| `159-0` | `receiver` (sıfırsa maker) |
+| `159-0`   | `receiver` (sıfırsa maker)                     |
 
 `data` içinde program **son slice**'tır; ofsetler `40 + hook uzunlukları` üzerinden hesaplanır. TS port'u yalnızca programı değil, **bu zarfı da** üretmeli.
 
@@ -236,13 +239,13 @@ Order {
 
 ## 8. Kaynak referansları
 
-| Konu | Dosya |
-|---|---|
-| Program decode / runLoop | `src/libs/VM.sol` |
-| Referans encoder | `test/utils/ProgramBuilder.sol` |
-| Opcode enum | `src/libs/OpcodeList.sol` |
-| Opcode setleri | `src/opcodes/{Opcodes,LimitOpcodes,AquaOpcodes}.sol` |
-| Router'lar | `src/routers/{SwapVMRouter,LimitSwapVMRouter,AquaSwapVMRouter}.sol` |
-| Order zarfı & traits | `src/libs/MakerTraits.sol` |
-| Instruction'lar | `src/instructions/*.sol` |
-| Program kataloğu | `docs/PROGRAMS.md` |
+| Konu                     | Dosya                                                               |
+| ------------------------ | ------------------------------------------------------------------- |
+| Program decode / runLoop | `src/libs/VM.sol`                                                   |
+| Referans encoder         | `test/utils/ProgramBuilder.sol`                                     |
+| Opcode enum              | `src/libs/OpcodeList.sol`                                           |
+| Opcode setleri           | `src/opcodes/{Opcodes,LimitOpcodes,AquaOpcodes}.sol`                |
+| Router'lar               | `src/routers/{SwapVMRouter,LimitSwapVMRouter,AquaSwapVMRouter}.sol` |
+| Order zarfı & traits     | `src/libs/MakerTraits.sol`                                          |
+| Instruction'lar          | `src/instructions/*.sol`                                            |
+| Program kataloğu         | `docs/PROGRAMS.md`                                                  |

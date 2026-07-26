@@ -28,21 +28,21 @@ The SwapVM documentation warns that instruction order is security-critical: the 
 
 ## Progress
 
-| | Milestone | Gate |
-|---|---|---|
-| ✅ | SwapVM encoding + opcode inventory verified from source → [docs/swapvm-opcodes.md](docs/swapvm-opcodes.md) | Day 1 |
-| ☐ | TypeScript `ProgramBuilder` port, byte-equal to Foundry output | Day 2 |
-| ☐ | Fork execution: submit → **real fill** → cancel/settle | Day 3 |
-| ☐ | Program validator + simulation preview | Day 4 |
-| ☐ | Lifecycle UI on real events · parameter extraction | Day 4 |
-| ☐ | Demo, README, submission | Day 5 |
+|     | Milestone                                                                                                  | Gate  |
+| --- | ---------------------------------------------------------------------------------------------------------- | ----- |
+| ✅  | SwapVM encoding + opcode inventory verified from source → [docs/swapvm-opcodes.md](docs/swapvm-opcodes.md) | Day 1 |
+| ☐   | TypeScript `ProgramBuilder` port, byte-equal to Foundry output                                             | Day 2 |
+| ☐   | Fork execution: submit → **real fill** → cancel/settle                                                     | Day 3 |
+| ☐   | Program validator + simulation preview                                                                     | Day 4 |
+| ☐   | Lifecycle UI on real events · parameter extraction                                                         | Day 4 |
+| ☐   | Demo, README, submission                                                                                   | Day 5 |
 
 Full plan, roles and daily gates: [docs/aquapilot-plan.md](docs/aquapilot-plan.md).
 
 ## Key findings from source (Day 1)
 
 - **Program encoding is `[1 byte opcode][1 byte argsLength][args]`** — confirmed from both the encoder (`ProgramBuilder.build`) and the decoder (`ContextLib.runLoop`). Arguments cap at 255 bytes per instruction; jump-addressable programs cap at 65,535 bytes.
-- **Aqua is a `MakerTraits` bit flag (`1 << 254`), not an opcode set.** This decides the architecture: `SwapVMRouter` with `useAquaInsteadOfSignature = true` gives the *full* instruction set **and** Aqua-backed settlement. `AquaSwapVMRouter` does not dispatch `LimitSwap`, `StaticBalances` or the invalidators at all — a limit-order ladder is impossible there.
+- **Aqua is a `MakerTraits` bit flag (`1 << 254`), not an opcode set.** This decides the architecture: `SwapVMRouter` with `useAquaInsteadOfSignature = true` gives the _full_ instruction set **and** Aqua-backed settlement. `AquaSwapVMRouter` does not dispatch `LimitSwap`, `StaticBalances` or the invalidators at all — a limit-order ladder is impossible there.
 - **`OraclePriceAdjuster` is unusable as shipped.** The instruction exists in source and appears in the architecture diagram, but it has no entry in the `Opcode` enum and is dispatched by no opcode set.
 
 These findings and the derived validator rule base (R1–R10) are documented in [docs/swapvm-opcodes.md](docs/swapvm-opcodes.md).
