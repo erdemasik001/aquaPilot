@@ -47,6 +47,7 @@ SwapVM'in kendisi derin bir substrate: `_limitSwap1D`, `_xycSwapXD`, `_xycConcen
 3. **Komut sırası güvenlik-kritiktir.** SwapVM README'sinin kendi uyarısı: _aynı komutlar farklı sırada strateji davranışını değiştirebilir._ Bu yüzden LLM'e asla serbest opcode sıralatmıyoruz; deterministik şablon + validator zorunlu.
 4. **Hazır şablon yok.** `docs/PROGRAMS.md` program _kategorilerini_ tarif eder, ladder/TWAP/rebalance şablonu **vermez** ve geliştiriciden model kararlılığının analitik kanıtını ister. Şablonu biz yazıp biz doğrulayacağız.
 5. **$100k bounty bir bug bounty'dir**, build grant değil. Güvenlik bulgusu / optimizasyon önerisi içindir, PoC ve ilk-bildiren şartı vardır. Planlamada takip fonu olarak sayılmaz.
+6. **Aqua ve SwapVM'in yayınlanmış mainnet adresi yok.** _(Gün 1 bulgusu)_ Her iki repoda da deployment parametreleri `0x0000…0000` placeholder ve commit'lenmiş gerçek-ağ deployment'ı yok. Fork'a **kontratları biz deploy ediyoruz**; mainnet forku gerçek token'lar ve likidite için gerekli. Ayrıntı: [fork-environment.md](fork-environment.md).
 
 ---
 
@@ -201,7 +202,7 @@ _Jürinin gördüğü yüzey. En az kod, en çok görünürlük._
 |           | Görev                                                                                                                                                                                                                                  |
 | --------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **dev1**  | `swap-vm` reposu + `docs/PROGRAMS.md` okuması → **opcode envanteri notu**. Foundry ile referans program derleyip byte çıktısını **golden fixture** olarak dosyaya alır (`contracts/fixtures/`). Bu fixture Gün 2'nin test oracle'ıdır. |
-| **dev2**  | Monorepo iskeleti + `scripts/fork.mjs` (Anvil, resmi Aqua/SwapVM adresleri, hesap fonlama, impersonation, **tek komutla reset**). Kontratlara ilk read çağrısı yeşil.                                                                  |
+| **dev2**  | Monorepo iskeleti + `scripts/fork.mjs` (Anvil **pinlenmiş blokta**, resmi Aqua + SwapVMRouter kaynağını fork'a deploy, fonlama, impersonation, **tek komutla reset**). Kontratlara ilk read çağrısı yeşil.                             |
 | **dev3**  | Next.js iskeleti, tasarım dili, lifecycle timeline bileşeninin statik hali.                                                                                                                                                            |
 | **Ortak** | `packages/shared` tipleri: `ProgramSpec`, `StrategyParams`, `LifecycleEvent`. **Gün sonunda donar.**                                                                                                                                   |
 
