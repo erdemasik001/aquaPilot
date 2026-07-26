@@ -44,8 +44,9 @@ Full plan, roles and daily gates: [docs/aquapilot-plan.md](docs/aquapilot-plan.m
 - **Program encoding is `[1 byte opcode][1 byte argsLength][args]`** — confirmed from both the encoder (`ProgramBuilder.build`) and the decoder (`ContextLib.runLoop`). Arguments cap at 255 bytes per instruction; jump-addressable programs cap at 65,535 bytes.
 - **Aqua is a `MakerTraits` bit flag (`1 << 254`), not an opcode set.** This decides the architecture: `SwapVMRouter` with `useAquaInsteadOfSignature = true` gives the _full_ instruction set **and** Aqua-backed settlement. `AquaSwapVMRouter` does not dispatch `LimitSwap`, `StaticBalances` or the invalidators at all — a limit-order ladder is impossible there.
 - **`OraclePriceAdjuster` is unusable as shipped.** The instruction exists in source and appears in the architecture diagram, but it has no entry in the `Opcode` enum and is dispatched by no opcode set.
+- **Neither Aqua nor SwapVM has a published mainnet deployment.** Every deployment parameter in both repositories is a `0x0000…0000` placeholder and no real-network deployment is committed. So AquaPilot forks mainnet for real tokens and liquidity, then **deploys the official contracts onto the fork itself**, unmodified, from pinned submodule commits.
 
-These findings and the derived validator rule base (R1–R10) are documented in [docs/swapvm-opcodes.md](docs/swapvm-opcodes.md).
+The encoding findings and the derived validator rule base (R1–R10) are documented in [docs/swapvm-opcodes.md](docs/swapvm-opcodes.md); the deployment finding and fork bring-up sequence in [docs/fork-environment.md](docs/fork-environment.md).
 
 ## Repository layout
 
@@ -55,6 +56,8 @@ packages/shared/         Shared types: ProgramSpec, StrategyParams, LifecycleEve
 packages/strategy-core/  ProgramBuilder port, strategy templates, validator
 packages/execution/      Fork orchestration, submit path, counterparty engine, event normalizer
 contracts/               Foundry: reference programs and golden fixtures
+contracts/lib/swap-vm    1inch/swap-vm, pinned submodule (never vendored, never linted)
+contracts/lib/aqua       1inch/aqua, pinned submodule
 scripts/                 Idempotent, cross-platform setup and ops scripts
 docs/                    Plan and protocol notes
 ```
@@ -62,6 +65,12 @@ docs/                    Plan and protocol notes
 ## Getting started
 
 Prerequisites: **Node 22** (`.nvmrc`), **npm 10+**, and **Foundry**.
+
+The official 1inch contracts are pinned as git submodules, so fetch them first:
+
+```bash
+git submodule update --init --recursive
+```
 
 ```bash
 npm install
