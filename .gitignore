@@ -1,0 +1,46 @@
+# dependencies
+node_modules/
+.pnp
+.pnp.*
+
+# build output
+dist/
+build/
+out/
+.next/
+coverage/
+*.tsbuildinfo
+
+# solidity / hardhat
+artifacts/
+cache/
+typechain-types/
+
+# the graph
+subgraph/build/
+subgraph/generated/
+
+# environment
+.env
+.env.*
+!.env.example
+
+# logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# os / editor
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
+
+# husky internals
+.husky/_/
+
+# claude code local settings (machine-specific)
+.claude/settings.local.json

@@ -1,0 +1,23 @@
+# Normalize all text files to LF in the repo (Windows <-> Linux CI consistency)
+* text=auto eol=lf
+
+# Explicit LF for scripts and shell
+*.sh text eol=lf
+*.mjs text eol=lf
+*.cjs text eol=lf
+*.js text eol=lf
+*.ts text eol=lf
+
+# Binary assets (never normalized)
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.webp binary
+*.woff binary
+*.woff2 binary
+*.pdf binary
+
+# Generated / lockfiles: collapse diffs and mark as generated
+package-lock.json -diff linguist-generated=true

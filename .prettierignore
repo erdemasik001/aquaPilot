@@ -1,0 +1,12 @@
+node_modules
+dist
+build
+out
+.next
+coverage
+generated
+artifacts
+cache
+typechain-types
+package-lock.json
+.husky/_
