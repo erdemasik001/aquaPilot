@@ -99,7 +99,8 @@ docs/
 
 ### MVP (bunlar olmazsa proje yok)
 - [ ] TS `ProgramBuilder` — Foundry referans çıktısıyla **byte-byte eşit**
-- [ ] Bir adet önemsiz-olmayan strateji: dallanmalı (`_jumpIfTokenIn`) veya oracle-ayarlı (`_oraclePriceAdjuster1D`) çok bacaklı program
+- [ ] Bir adet önemsiz-olmayan strateji: dallanmalı (`JumpIfTokenIn`) + `DutchAuction`/`BaseFeeAdjuster` ile dinamik fiyatlanan çok bacaklı program
+      *(Gün 1 revizyonu: `OraclePriceAdjuster` hiçbir opcode setinde dispatch edilmiyor — bkz. [swapvm-opcodes.md](swapvm-opcodes.md) §2)*
 - [ ] Fork'ta uçtan uca: submit → **gerçek fill** → cancel/settle
 - [ ] Validator: opcode sırası, `_deadline` varlığı, invalidator varlığı, adjuster konumu
 - [ ] Gerçek event'lerle beslenen lifecycle UI
@@ -216,7 +217,7 @@ docs/
 
 | | Görev |
 |---|---|
-| **dev1** | Strateji şablonu v1: dallanmalı (`_jumpIfTokenIn`) veya oracle-ayarlı (`_oraclePriceAdjuster1D`) çok bacaklı program + Foundry testleri. `_deadline` ve invalidator dahil. |
+| **dev1** | Strateji şablonu v1: `StaticBalances` → dallanma (`JumpIfTokenIn`) → `LimitSwap` bacakları → `InvalidateTokenOut`, `DutchAuction`/`BaseFeeAdjuster` ile dinamik fiyatlama + Foundry testleri. `Deadline` ve invalidator dahil. |
 | **dev2** | **Gerçek fill.** Karşı taraf swap'leri programı dolduruyor; kısmi doluluk, cancel ve settle çalışıyor. Event normalizer → WS → UI. |
 | **dev3** | UI canlı akışa bağlanıyor. Kısmi fill, cancel ve settle durumları ekranda doğru görünüyor. |
 
@@ -268,7 +269,7 @@ Kararı **Gün 3 akşamı** verin, daha erken değil — Gate 3'ün durumu bu ka
 | Risk | Olasılık | Etki | Karşılık |
 |---|---|---|---|
 | Byte layout'u yanlış çıkarmak | Orta | **Kritik** | Golden fixture Gün 1'de hazır; her encoder değişikliği ona karşı test edilir |
-| Encoder Gün 2'de bitmez | Orta | Kritik | dev2 takviyeye geçer, strateji bir kademe basitleşir (dallanma → oracle adjuster) |
+| Encoder Gün 2'de bitmez | Orta | Kritik | dev2 takviyeye geçer, strateji bir kademe basitleşir (dallanmalı → tek bacaklı `DutchAuction` merdiveni) |
 | Fork'ta Aqua adresleri / state sorunları | Orta | Yüksek | Fallback: kontratları yerel olarak deploy edip aynı akışı sürmek |
 | Oracle adjuster için fiyat kaynağı | Düşük | Orta | Fork'ta Chainlink feed'i doğrudan okunur |
 | LLM entegrasyonu uzar | Düşük | Düşük | 3 hazır preset + manuel form; serbest metin girişi opsiyonel hale gelir |
