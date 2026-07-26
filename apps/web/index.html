@@ -1,0 +1,1095 @@
+<title>AquaPilot — SwapVM Strategy Composer</title>
+<style>
+  :root {
+    --ground: #f5f7f9;
+    --surface: #ffffff;
+    --surface-2: #eef2f6;
+    --line: #d8e0e8;
+    --line-soft: #e6ecf2;
+    --ink: #16202d;
+    --ink-2: #3d4d60;
+    --muted: #6d7f93;
+    --accent: #1c7fb8;
+    --accent-soft: #d6ebf7;
+    --byte-op: #1c7fb8;
+    --byte-len: #a9701a;
+    --byte-arg: #6d7f93;
+    --ok: #2f7d52;
+    --ok-bg: #dff0e5;
+    --warn: #9a7420;
+    --warn-bg: #f7eed6;
+    --bad: #b8403a;
+    --bad-bg: #fadedc;
+    --mono:
+      ui-monospace, 'SF Mono', 'Cascadia Mono', 'JetBrains Mono', 'Roboto Mono', Consolas, monospace;
+    --sans:
+      ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --ground: #0e1621;
+      --surface: #16202d;
+      --surface-2: #1c2937;
+      --line: #263646;
+      --line-soft: #1f2d3c;
+      --ink: #dde4ec;
+      --ink-2: #aebbc9;
+      --muted: #7a8899;
+      --accent: #2e9bd6;
+      --accent-soft: #12354b;
+      --byte-op: #4fb0e4;
+      --byte-len: #d9a441;
+      --byte-arg: #7a8899;
+      --ok: #5bbd84;
+      --ok-bg: #12301f;
+      --warn: #d9a441;
+      --warn-bg: #33280d;
+      --bad: #e8756c;
+      --bad-bg: #3a1613;
+    }
+  }
+  :root[data-theme='light'] {
+    --ground: #f5f7f9;
+    --surface: #ffffff;
+    --surface-2: #eef2f6;
+    --line: #d8e0e8;
+    --line-soft: #e6ecf2;
+    --ink: #16202d;
+    --ink-2: #3d4d60;
+    --muted: #6d7f93;
+    --accent: #1c7fb8;
+    --accent-soft: #d6ebf7;
+    --byte-op: #1c7fb8;
+    --byte-len: #a9701a;
+    --byte-arg: #6d7f93;
+    --ok: #2f7d52;
+    --ok-bg: #dff0e5;
+    --warn: #9a7420;
+    --warn-bg: #f7eed6;
+    --bad: #b8403a;
+    --bad-bg: #fadedc;
+  }
+  :root[data-theme='dark'] {
+    --ground: #0e1621;
+    --surface: #16202d;
+    --surface-2: #1c2937;
+    --line: #263646;
+    --line-soft: #1f2d3c;
+    --ink: #dde4ec;
+    --ink-2: #aebbc9;
+    --muted: #7a8899;
+    --accent: #2e9bd6;
+    --accent-soft: #12354b;
+    --byte-op: #4fb0e4;
+    --byte-len: #d9a441;
+    --byte-arg: #7a8899;
+    --ok: #5bbd84;
+    --ok-bg: #12301f;
+    --warn: #d9a441;
+    --warn-bg: #33280d;
+    --bad: #e8756c;
+    --bad-bg: #3a1613;
+  }
+
+  * {
+    box-sizing: border-box;
+  }
+  body {
+    margin: 0;
+    background: var(--ground);
+    color: var(--ink);
+    font-family: var(--sans);
+    line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
+  }
+  .wrap {
+    max-width: 1080px;
+    margin: 0 auto;
+    padding: 0 24px 96px;
+  }
+
+  /* ---------- top bar ---------- */
+  .bar {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    flex-wrap: wrap;
+    padding: 20px 0 18px;
+    border-bottom: 1px solid var(--line);
+    margin-bottom: 40px;
+  }
+  .mark {
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+    margin-right: auto;
+  }
+  .mark b {
+    font-family: var(--mono);
+    font-size: 17px;
+    letter-spacing: -0.02em;
+    font-weight: 600;
+  }
+  .mark span {
+    font-size: 12.5px;
+    color: var(--muted);
+  }
+  .chip {
+    font-family: var(--mono);
+    font-size: 11.5px;
+    padding: 4px 9px;
+    border: 1px solid var(--line);
+    border-radius: 3px;
+    color: var(--ink-2);
+    background: var(--surface);
+    white-space: nowrap;
+  }
+  .chip.live {
+    color: var(--ok);
+    border-color: color-mix(in srgb, var(--ok) 40%, var(--line));
+  }
+  .dot {
+    display: inline-block;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--ok);
+    margin-right: 6px;
+    vertical-align: middle;
+  }
+
+  /* ---------- hero ---------- */
+  .hero {
+    margin-bottom: 52px;
+  }
+  .hero h1 {
+    font-family: var(--mono);
+    font-size: clamp(26px, 4.4vw, 40px);
+    line-height: 1.15;
+    letter-spacing: -0.03em;
+    font-weight: 600;
+    margin: 0 0 16px;
+    text-wrap: balance;
+    max-width: 20ch;
+  }
+  .hero h1 em {
+    font-style: normal;
+    color: var(--accent);
+  }
+  .hero p {
+    margin: 0;
+    color: var(--ink-2);
+    font-size: 16px;
+    max-width: 62ch;
+  }
+
+  /* ---------- stage scaffolding ---------- */
+  .stage {
+    margin-bottom: 44px;
+  }
+  .eyebrow {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 14px;
+  }
+  .eyebrow .n {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--accent);
+    border: 1px solid color-mix(in srgb, var(--accent) 35%, transparent);
+    border-radius: 3px;
+    padding: 2px 6px;
+    letter-spacing: 0.04em;
+  }
+  .eyebrow h2 {
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.11em;
+    color: var(--muted);
+    margin: 0;
+    font-weight: 600;
+  }
+  .eyebrow .rule {
+    flex: 1;
+    height: 1px;
+    background: var(--line-soft);
+  }
+  .note {
+    font-size: 13.5px;
+    color: var(--muted);
+    margin: 10px 0 0;
+    max-width: 68ch;
+  }
+
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    overflow: hidden;
+  }
+  .card-pad {
+    padding: 18px 20px;
+  }
+
+  /* ---------- 01 intent ---------- */
+  .intent {
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+    padding: 20px;
+  }
+  .intent .caret {
+    font-family: var(--mono);
+    color: var(--accent);
+    font-size: 16px;
+    padding-top: 1px;
+  }
+  .intent p {
+    margin: 0;
+    font-size: 16.5px;
+    color: var(--ink);
+    line-height: 1.5;
+  }
+  .intent p mark {
+    background: var(--accent-soft);
+    color: inherit;
+    padding: 1px 3px;
+    border-radius: 2px;
+  }
+
+  /* ---------- 02 params ---------- */
+  .params {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+    gap: 1px;
+    background: var(--line-soft);
+  }
+  .param {
+    background: var(--surface);
+    padding: 13px 16px;
+  }
+  .param .k {
+    font-size: 10.5px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--muted);
+    display: block;
+    margin-bottom: 5px;
+  }
+  .param .v {
+    font-family: var(--mono);
+    font-size: 13.5px;
+    color: var(--ink);
+    font-variant-numeric: tabular-nums;
+  }
+  .param .t {
+    font-size: 11px;
+    color: var(--muted);
+    font-family: var(--mono);
+  }
+
+  /* ---------- 03 disassembly ---------- */
+  .toolbar {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--line);
+    background: var(--surface-2);
+  }
+  .toolbar .grow {
+    flex: 1;
+  }
+  .toolbar .meta {
+    font-family: var(--mono);
+    font-size: 11.5px;
+    color: var(--muted);
+  }
+  button.tgl {
+    font-family: var(--mono);
+    font-size: 12px;
+    cursor: pointer;
+    background: var(--surface);
+    color: var(--ink);
+    border: 1px solid var(--line);
+    padding: 6px 12px;
+    border-radius: 4px;
+    transition:
+      border-color 0.15s,
+      color 0.15s;
+  }
+  button.tgl:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+  button.tgl:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+  }
+  button.tgl[aria-pressed='true'] {
+    border-color: var(--bad);
+    color: var(--bad);
+    background: var(--bad-bg);
+  }
+
+  .listing {
+    overflow-x: auto;
+  }
+  table.asm {
+    width: 100%;
+    border-collapse: collapse;
+    font-family: var(--mono);
+    font-size: 13px;
+  }
+  table.asm th {
+    text-align: left;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.09em;
+    color: var(--muted);
+    font-weight: 600;
+    padding: 9px 14px;
+    border-bottom: 1px solid var(--line);
+    white-space: nowrap;
+    font-family: var(--sans);
+  }
+  table.asm td {
+    padding: 8px 14px;
+    border-bottom: 1px solid var(--line-soft);
+    vertical-align: top;
+  }
+  table.asm tr:last-child td {
+    border-bottom: none;
+  }
+  table.asm tbody tr {
+    cursor: pointer;
+    transition: background 0.12s;
+  }
+  table.asm tbody tr:hover {
+    background: var(--surface-2);
+  }
+  table.asm tbody tr.sel {
+    background: var(--accent-soft);
+  }
+  .pc {
+    color: var(--muted);
+    font-variant-numeric: tabular-nums;
+  }
+  .op {
+    color: var(--byte-op);
+    font-weight: 600;
+  }
+  .ln {
+    color: var(--byte-len);
+  }
+  .nm {
+    color: var(--ink);
+    font-weight: 600;
+  }
+  .ar {
+    color: var(--muted);
+    word-break: break-all;
+    font-size: 12px;
+  }
+  .flag {
+    display: inline-block;
+    font-size: 10px;
+    padding: 1px 6px;
+    border-radius: 3px;
+    background: var(--bad-bg);
+    color: var(--bad);
+    margin-left: 8px;
+    font-family: var(--sans);
+    font-weight: 600;
+    letter-spacing: 0.03em;
+    vertical-align: 1px;
+  }
+
+  .hexwrap {
+    border-top: 1px solid var(--line);
+    padding: 14px 16px;
+    background: var(--surface-2);
+  }
+  .hexlabel {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.09em;
+    color: var(--muted);
+    margin-bottom: 9px;
+  }
+  .hex {
+    font-family: var(--mono);
+    font-size: 12px;
+    line-height: 1.9;
+    word-break: break-all;
+    color: var(--byte-arg);
+  }
+  .hex b {
+    font-weight: 600;
+  }
+  .hex .h-op {
+    color: var(--byte-op);
+    font-weight: 600;
+  }
+  .hex .h-ln {
+    color: var(--byte-len);
+  }
+  .hex span.grp {
+    padding: 1px 0;
+    border-radius: 2px;
+    transition: background 0.12s;
+  }
+  .hex span.grp.sel {
+    background: var(--accent-soft);
+    box-shadow: 0 0 0 3px var(--accent-soft);
+  }
+
+  .legend {
+    display: flex;
+    gap: 16px;
+    flex-wrap: wrap;
+    margin-top: 12px;
+    font-size: 11.5px;
+    color: var(--muted);
+    font-family: var(--sans);
+  }
+  .legend i {
+    font-style: normal;
+    font-family: var(--mono);
+    font-weight: 600;
+  }
+
+  /* ---------- 04 validator ---------- */
+  .vhead {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 18px;
+    border-bottom: 1px solid var(--line);
+    flex-wrap: wrap;
+  }
+  .verdict {
+    font-family: var(--mono);
+    font-size: 13px;
+    font-weight: 600;
+    padding: 5px 12px;
+    border-radius: 4px;
+  }
+  .verdict.pass {
+    background: var(--ok-bg);
+    color: var(--ok);
+  }
+  .verdict.fail {
+    background: var(--bad-bg);
+    color: var(--bad);
+  }
+  .vhead .sum {
+    font-size: 13px;
+    color: var(--muted);
+  }
+
+  ul.rules {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+  ul.rules li {
+    display: grid;
+    grid-template-columns: 22px 46px 1fr;
+    gap: 12px;
+    align-items: start;
+    padding: 10px 18px;
+    border-bottom: 1px solid var(--line-soft);
+    font-size: 13.5px;
+  }
+  ul.rules li:last-child {
+    border-bottom: none;
+  }
+  ul.rules li.bad {
+    background: var(--bad-bg);
+  }
+  .rid {
+    font-family: var(--mono);
+    font-size: 11.5px;
+    color: var(--muted);
+    padding-top: 2px;
+  }
+  .tick {
+    font-family: var(--mono);
+    font-weight: 700;
+    padding-top: 1px;
+  }
+  .tick.y {
+    color: var(--ok);
+  }
+  .tick.n {
+    color: var(--bad);
+  }
+  .rtext {
+    color: var(--ink-2);
+  }
+  .rtext b {
+    color: var(--ink);
+    font-weight: 600;
+  }
+  .rtext code {
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--bad);
+    background: color-mix(in srgb, var(--bad) 12%, transparent);
+    padding: 1px 5px;
+    border-radius: 3px;
+  }
+
+  /* ---------- 05 lifecycle ---------- */
+  .life {
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+  .ev {
+    display: grid;
+    grid-template-columns: 118px 1fr auto;
+    gap: 16px;
+    align-items: center;
+    padding: 13px 18px;
+    border-bottom: 1px solid var(--line-soft);
+  }
+  .ev:last-child {
+    border-bottom: none;
+  }
+  .evname {
+    font-family: var(--mono);
+    font-size: 12px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 7px;
+  }
+  .evname s {
+    text-decoration: none;
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    flex: none;
+  }
+  .evname.ship s {
+    background: var(--accent);
+  }
+  .evname.pull s {
+    background: var(--warn);
+  }
+  .evname.push s {
+    background: var(--ok);
+  }
+  .evname.dock s {
+    background: var(--muted);
+  }
+  .evbody {
+    font-size: 13.5px;
+    color: var(--ink-2);
+    font-family: var(--mono);
+  }
+  .evbody b {
+    color: var(--ink);
+    font-variant-numeric: tabular-nums;
+  }
+  .evmeta {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--muted);
+    text-align: right;
+    white-space: nowrap;
+  }
+
+  .fillbar {
+    padding: 16px 18px;
+    border-bottom: 1px solid var(--line);
+  }
+  .fillbar .row {
+    display: flex;
+    justify-content: space-between;
+    font-size: 12px;
+    color: var(--muted);
+    margin-bottom: 8px;
+  }
+  .fillbar .row b {
+    color: var(--ink);
+    font-family: var(--mono);
+    font-variant-numeric: tabular-nums;
+  }
+  .track {
+    height: 6px;
+    background: var(--surface-2);
+    border-radius: 3px;
+    overflow: hidden;
+    display: flex;
+  }
+  .track i {
+    display: block;
+    height: 100%;
+    background: var(--accent);
+  }
+  .track i.pend {
+    background: repeating-linear-gradient(90deg, var(--line) 0 4px, transparent 4px 8px);
+  }
+
+  /* ---------- footer ---------- */
+  .foot {
+    margin-top: 56px;
+    padding-top: 22px;
+    border-top: 1px solid var(--line);
+    font-size: 13px;
+    color: var(--muted);
+    display: grid;
+    gap: 8px;
+  }
+  .foot b {
+    color: var(--ink-2);
+  }
+  .foot code {
+    font-family: var(--mono);
+    font-size: 12px;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    * {
+      transition: none !important;
+    }
+  }
+  @media (max-width: 640px) {
+    .ev {
+      grid-template-columns: 1fr;
+      gap: 5px;
+    }
+    .evmeta {
+      text-align: left;
+    }
+    ul.rules li {
+      grid-template-columns: 22px 1fr;
+    }
+    ul.rules li .rid {
+      grid-column: 1 / -1;
+    }
+  }
+</style>
+
+<div class="wrap">
+  <header class="bar">
+    <div class="mark">
+      <b>AquaPilot</b>
+      <span>SwapVM strategy composer</span>
+    </div>
+    <span class="chip">SwapVMRouter · useAquaInsteadOfSignature</span>
+    <span class="chip live"><span class="dot"></span>fork · chain 31337</span>
+  </header>
+
+  <section class="hero">
+    <h1>A sentence in.<br /><em>Validated bytecode</em> out.</h1>
+    <p>
+      1inch SwapVM is an instruction VM for programmable swaps, and its own documentation warns that
+      instruction order is security-critical — the same instructions in a different order change
+      what a strategy does. AquaPilot composes multi-leg SwapVM programs from a plain-language
+      intent, then refuses to submit any program that violates the protocol's own ordering rules.
+    </p>
+  </section>
+
+  <!-- 01 -->
+  <section class="stage">
+    <div class="eyebrow">
+      <span class="n">01</span>
+      <h2>Intent</h2>
+      <span class="rule"></span>
+    </div>
+    <div class="card">
+      <div class="intent">
+        <span class="caret">&rsaquo;</span>
+        <p>
+          Sell <mark>12 WETH</mark> for USDC in <mark>a fixed-rate ladder</mark>, only when someone
+          is bringing WETH in, <mark>fillable in parts</mark>, and expire it in
+          <mark>6 hours</mark>.
+        </p>
+      </div>
+    </div>
+    <p class="note">
+      The model never chooses opcodes. It reads this sentence and fills the typed slots below —
+      nothing more.
+    </p>
+  </section>
+
+  <!-- 02 -->
+  <section class="stage">
+    <div class="eyebrow">
+      <span class="n">02</span>
+      <h2>Extracted parameters</h2>
+      <span class="rule"></span>
+    </div>
+    <div class="card">
+      <div class="params">
+        <div class="param">
+          <span class="k">strategy</span><span class="v">conditional-ladder</span>
+        </div>
+        <div class="param">
+          <span class="k">tokenA</span><span class="v">WETH</span>
+          <span class="t">0xC02aaA…6Cc2</span>
+        </div>
+        <div class="param">
+          <span class="k">tokenB</span><span class="v">USDC</span>
+          <span class="t">0xA0b869…eB48</span>
+        </div>
+        <div class="param">
+          <span class="k">balanceA</span><span class="v">12.000000</span>
+          <span class="t">18 dec</span>
+        </div>
+        <div class="param">
+          <span class="k">balanceB</span><span class="v">42 000.000000</span>
+          <span class="t">6 dec</span>
+        </div>
+        <div class="param">
+          <span class="k">deadline</span><span class="v">+6h</span> <span class="t">uint40</span>
+        </div>
+        <div class="param">
+          <span class="k">invalidator bit</span><span class="v">1234</span>
+          <span class="t">uint32</span>
+        </div>
+        <div class="param">
+          <span class="k">partial fill</span><span class="v">true</span>
+          <span class="t">InvalidateTokenOut</span>
+        </div>
+      </div>
+    </div>
+    <p class="note">
+      Token order is not cosmetic:
+      <code style="font-family: var(--mono); font-size: 12px">tokenA &lt; tokenB</code> is enforced
+      on-chain by
+      <code style="font-family: var(--mono); font-size: 12px">MakerTraitsTokensNotSorted</code>.
+    </p>
+  </section>
+
+  <!-- 03 -->
+  <section class="stage">
+    <div class="eyebrow">
+      <span class="n">03</span>
+      <h2>Composed program</h2>
+      <span class="rule"></span>
+    </div>
+    <div class="card">
+      <div class="toolbar">
+        <span class="meta" id="meta"></span>
+        <span class="grow"></span>
+        <button class="tgl" id="tamper" aria-pressed="false" type="button">
+          tamper with instruction order
+        </button>
+      </div>
+      <div class="listing">
+        <table class="asm">
+          <thead>
+            <tr>
+              <th>pc</th>
+              <th>op</th>
+              <th>len</th>
+              <th>instruction</th>
+              <th>args</th>
+            </tr>
+          </thead>
+          <tbody id="asm"></tbody>
+        </table>
+      </div>
+      <div class="hexwrap">
+        <div class="hexlabel">raw program bytes</div>
+        <div class="hex" id="hex"></div>
+        <div class="legend">
+          <span><i class="h-op" style="color: var(--byte-op)">■</i> opcode &mdash; 1 byte</span>
+          <span
+            ><i class="h-ln" style="color: var(--byte-len)">■</i> argsLength &mdash; 1 byte, max
+            255</span
+          >
+          <span><i style="color: var(--byte-arg)">■</i> args &mdash; packed, unpadded</span>
+        </div>
+      </div>
+    </div>
+    <p class="note">
+      Click any instruction to locate its bytes. The encoding is
+      <code style="font-family: var(--mono); font-size: 12px">[opcode][argsLength][args]</code>,
+      verified against both
+      <code style="font-family: var(--mono); font-size: 12px">ProgramBuilder.build</code> and the
+      decoder in <code style="font-family: var(--mono); font-size: 12px">ContextLib.runLoop</code>.
+    </p>
+  </section>
+
+  <!-- 04 -->
+  <section class="stage">
+    <div class="eyebrow">
+      <span class="n">04</span>
+      <h2>Validator</h2>
+      <span class="rule"></span>
+    </div>
+    <div class="card">
+      <div class="vhead">
+        <span class="verdict pass" id="verdict">PASS</span>
+        <span class="sum" id="vsum"></span>
+      </div>
+      <ul class="rules" id="rules"></ul>
+    </div>
+    <p class="note">
+      Every rule is derived from a
+      <code style="font-family: var(--mono); font-size: 12px">require</code> in the SwapVM
+      contracts, so a failure here is exactly what the chain would have reverted with — caught
+      before a transaction is signed.
+    </p>
+  </section>
+
+  <!-- 05 -->
+  <section class="stage">
+    <div class="eyebrow">
+      <span class="n">05</span>
+      <h2>Position lifecycle</h2>
+      <span class="rule"></span>
+    </div>
+    <div class="card">
+      <div class="fillbar">
+        <div class="row">
+          <span>filled</span><span><b>7.4</b> / 12.0 WETH &nbsp;·&nbsp; <b>61.7%</b></span>
+        </div>
+        <div class="track">
+          <i style="width: 61.7%"></i><i class="pend" style="width: 38.3%"></i>
+        </div>
+      </div>
+      <div class="life">
+        <div class="ev">
+          <span class="evname ship"><s></s>Shipped</span>
+          <span class="evbody">strategy <b>0x7c1a…9e04</b> registered, balances funded</span>
+          <span class="evmeta">block 21 480 233 · 0xa71f…</span>
+        </div>
+        <div class="ev">
+          <span class="evname pull"><s></s>Pulled</span>
+          <span class="evbody"><b>4.000000</b> WETH &rarr; taker</span>
+          <span class="evmeta">block 21 480 251 · 0x3d92…</span>
+        </div>
+        <div class="ev">
+          <span class="evname push"><s></s>Pushed</span>
+          <span class="evbody"><b>14 000.000000</b> USDC &rarr; maker</span>
+          <span class="evmeta">block 21 480 251 · 0x3d92…</span>
+        </div>
+        <div class="ev">
+          <span class="evname pull"><s></s>Pulled</span>
+          <span class="evbody"><b>3.400000</b> WETH &rarr; taker</span>
+          <span class="evmeta">block 21 480 264 · 0xb508…</span>
+        </div>
+        <div class="ev">
+          <span class="evname push"><s></s>Pushed</span>
+          <span class="evbody"><b>11 900.000000</b> USDC &rarr; maker</span>
+          <span class="evmeta">block 21 480 264 · 0xb508…</span>
+        </div>
+        <div class="ev">
+          <span class="evname dock"><s></s>Docked</span>
+          <span class="evbody">maker revoked the strategy &mdash; all tokens closed</span>
+          <span class="evmeta">pending</span>
+        </div>
+      </div>
+    </div>
+    <p class="note">
+      Aqua emits the two sides of a fill separately, so a fill is a <b>Pulled</b> +
+      <b>Pushed</b> pair sharing one transaction. None of these parameters are indexed — logs are
+      filtered by address and topic, then decoded.
+    </p>
+  </section>
+
+  <footer class="foot">
+    <div>
+      <b>Prototype.</b> This is the interface layer only. The figures shown are a worked example,
+      not a live fork session.
+    </div>
+    <div>
+      <b>Verified from source:</b> the encoding, the opcode table and argument layouts, the
+      validator rule base, and the fact that Aqua is <code>MakerTraits</code> bit 254 rather than a
+      separate opcode set.
+    </div>
+    <div>
+      Built on <b>1inch Aqua</b> and <b>SwapVM</b>. Contract sources are pinned as git submodules;
+      no 1inch code is vendored.
+    </div>
+  </footer>
+</div>
+
+<script>
+  // Program model. Bytes are derived, not hand-written — same discipline as the encoder.
+  const WETH = 'c02aaa39b223fe8d0a0e5c4f27ead9083c756cc2';
+  const b32 = (h) => h.padStart(64, '0');
+
+  const VALID = [
+    { op: 0x20, name: 'Deadline', args: '00690a1b20', desc: 'expires 2026-07-26 21:00 UTC' },
+    { op: 0x40, name: 'InvalidateBit', args: '000004d2', desc: 'bit 1234 — one-shot replay guard' },
+    {
+      op: 0x90,
+      name: 'StaticBalances',
+      args: b32('a688906bd8b00000') + b32('9c7652400'),
+      desc: '12e18 WETH / 42000e6 USDC',
+    },
+    {
+      op: 0x31,
+      name: 'JumpIfTokenIn',
+      args: WETH + '0067',
+      desc: 'if tokenIn == WETH → pc 0x0067',
+    },
+    { op: 0x53, name: 'LimitSwap', args: '01', desc: 'makerDirectionLt = true' },
+    { op: 0x42, name: 'InvalidateTokenOut', args: '', desc: 'cumulative fill accounting' },
+  ];
+
+  // Tampered: deadline dropped, swap moved ahead of the balances that price it.
+  const TAMPERED = [
+    { op: 0x40, name: 'InvalidateBit', args: '000004d2', desc: 'bit 1234 — one-shot replay guard' },
+    { op: 0x53, name: 'LimitSwap', args: '01', desc: 'makerDirectionLt = true', bad: true },
+    {
+      op: 0x90,
+      name: 'StaticBalances',
+      args: b32('a688906bd8b00000') + b32('9c7652400'),
+      desc: '12e18 WETH / 42000e6 USDC',
+      bad: true,
+    },
+    { op: 0x42, name: 'InvalidateTokenOut', args: '', desc: 'cumulative fill accounting' },
+  ];
+
+  const RULES_OK = [
+    ['R1', true, '<b>StaticBalances</b> appears once, before any swap instruction'],
+    ['R2', true, '<b>LimitSwap</b> runs after balances are set'],
+    ['R3', true, 'Exactly one swap instruction on the execution path'],
+    ['R4', true, 'Swap direction argument matches the token ordering'],
+    ['R5', true, 'tokenA &lt; tokenB, so the order envelope will build'],
+    ['R6', true, 'Jump target 0x0067 lands on an instruction boundary'],
+    ['R7', true, 'Every argument block is within the 255-byte limit'],
+    ['R8', true, 'No backward jump into a wrapping instruction'],
+    ['R9', true, 'A <b>Deadline</b> is present — the order cannot live forever'],
+    ['R10', true, 'An invalidator is present — the order cannot be replayed'],
+  ];
+
+  const RULES_BAD = [
+    [
+      'R2',
+      false,
+      '<b>LimitSwap</b> executes before <b>StaticBalances</b>. Both balances are still zero, so the chain would revert with <code>LimitSwapRequiresBothBalancesNonZero</code>.',
+    ],
+    ['R9', false, 'No <b>Deadline</b> instruction. The order would stay fillable indefinitely.'],
+    ['R1', true, '<b>StaticBalances</b> appears exactly once'],
+    ['R3', true, 'Exactly one swap instruction on the execution path'],
+    ['R4', true, 'Swap direction argument matches the token ordering'],
+    ['R5', true, 'tokenA &lt; tokenB, so the order envelope will build'],
+    ['R7', true, 'Every argument block is within the 255-byte limit'],
+    ['R8', true, 'No backward jump into a wrapping instruction'],
+    ['R10', true, 'An invalidator is present — the order cannot be replayed'],
+  ];
+
+  const hx = (n, w) => n.toString(16).padStart(w, '0');
+  const asmEl = document.getElementById('asm');
+  const hexEl = document.getElementById('hex');
+  const metaEl = document.getElementById('meta');
+  const rulesEl = document.getElementById('rules');
+  const verdictEl = document.getElementById('verdict');
+  const vsumEl = document.getElementById('vsum');
+  const btn = document.getElementById('tamper');
+
+  let tampered = false;
+
+  function render() {
+    const prog = tampered ? TAMPERED : VALID;
+    let pc = 0;
+    asmEl.innerHTML = '';
+    hexEl.innerHTML = '';
+
+    prog.forEach((ins, i) => {
+      const len = ins.args.length / 2;
+
+      const tr = document.createElement('tr');
+      tr.dataset.i = i;
+      tr.innerHTML =
+        '<td class="pc">' +
+        hx(pc, 4) +
+        '</td>' +
+        '<td class="op">' +
+        hx(ins.op, 2) +
+        '</td>' +
+        '<td class="ln">' +
+        hx(len, 2) +
+        '</td>' +
+        '<td class="nm">' +
+        ins.name +
+        (ins.bad ? '<span class="flag">ORDER</span>' : '') +
+        '</td>' +
+        '<td class="ar">' +
+        ins.desc +
+        '</td>';
+      asmEl.appendChild(tr);
+
+      const grp = document.createElement('span');
+      grp.className = 'grp';
+      grp.dataset.i = i;
+      grp.innerHTML =
+        '<b class="h-op">' +
+        hx(ins.op, 2) +
+        '</b>' +
+        '<b class="h-ln">' +
+        hx(len, 2) +
+        '</b>' +
+        ins.args +
+        ' ';
+      hexEl.appendChild(grp);
+
+      pc += 2 + len;
+    });
+
+    metaEl.textContent = prog.length + ' instructions · ' + pc + ' bytes · 0x' + hx(pc, 4);
+
+    const rules = tampered ? RULES_BAD : RULES_OK;
+    const fails = rules.filter((r) => !r[1]).length;
+    verdictEl.textContent = fails ? 'BLOCKED' : 'PASS';
+    verdictEl.className = 'verdict ' + (fails ? 'fail' : 'pass');
+    vsumEl.innerHTML = fails
+      ? fails + ' of ' + rules.length + ' rules failed — submission refused'
+      : rules.length + ' of ' + rules.length + ' rules checked and satisfied';
+
+    rulesEl.innerHTML = rules
+      .map(
+        (r) =>
+          '<li class="' +
+          (r[1] ? '' : 'bad') +
+          '">' +
+          '<span class="tick ' +
+          (r[1] ? 'y' : 'n') +
+          '">' +
+          (r[1] ? '✓' : '✕') +
+          '</span>' +
+          '<span class="rid">' +
+          r[0] +
+          '</span>' +
+          '<span class="rtext">' +
+          r[2] +
+          '</span>' +
+          '</li>',
+      )
+      .join('');
+  }
+
+  function select(i) {
+    document
+      .querySelectorAll('#asm tr')
+      .forEach((t) => t.classList.toggle('sel', t.dataset.i === i));
+    document
+      .querySelectorAll('#hex .grp')
+      .forEach((g) => g.classList.toggle('sel', g.dataset.i === i));
+  }
+
+  asmEl.addEventListener('click', (e) => {
+    const tr = e.target.closest('tr');
+    if (tr) select(tr.dataset.i);
+  });
+
+  btn.addEventListener('click', () => {
+    tampered = !tampered;
+    btn.setAttribute('aria-pressed', String(tampered));
+    btn.textContent = tampered ? 'restore valid program' : 'tamper with instruction order';
+    render();
+  });
+
+  render();
+</script>
