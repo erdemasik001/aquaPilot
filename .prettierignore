@@ -10,3 +10,6 @@ cache
 typechain-types
 package-lock.json
 .husky/_
+
+# Vendored 1inch sources pinned as git submodules — never reformatted by us.
+contracts/lib

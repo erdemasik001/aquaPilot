@@ -17,6 +17,8 @@ export default tseslint.config(
       '**/cache/**',
       '**/typechain-types/**',
       '.husky/_/**',
+      // Vendored 1inch sources pinned as git submodules — not ours to lint.
+      'contracts/lib/**',
     ],
   },
   js.configs.recommended,
